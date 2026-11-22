@@ -24,8 +24,10 @@ import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import com.sighted.sleep.domain.metrics.SleepMetrics
 import java.time.Duration
 import java.time.Instant
+import java.time.LocalDate
 
 data class TodayUiState(
     val loaded: Boolean = false,
@@ -35,6 +37,8 @@ data class TodayUiState(
     val targets: Targets = Targets(),
     val tags: List<Tag> = emptyList(),
     val sessionTags: Map<Long, Set<Long>> = emptyMap(),
+    /** Rolling 7-day debt vs. target (spec F5.1). */
+    val sleepDebt: Duration = Duration.ZERO,
 ) {
     val activeDuration: Duration? get() = active?.duration(now)
     val stillSleepingWarning: Boolean
@@ -73,6 +77,7 @@ class TodayViewModel(
                 targets = targets,
                 tags = tags,
                 sessionTags = sessionTags,
+                sleepDebt = SleepMetrics.sleepDebt(SleepMetrics.dailyTotals(sessions), targets.duration, LocalDate.now()),
             )
         }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TodayUiState())
 

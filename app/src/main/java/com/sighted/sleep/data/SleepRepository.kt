@@ -8,6 +8,8 @@ import com.sighted.sleep.domain.ValidationError
 import com.sighted.sleep.domain.model.CheckIn
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.SleepSession
+import com.sighted.sleep.domain.sample.SampleData
+import com.sighted.sleep.domain.sample.SampleSession
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.sync.Mutex
@@ -131,6 +133,37 @@ class SleepRepository(
     }
 
     suspend fun delete(id: Long) = changing { dao.deleteById(id) }
+
+    /**
+     * Debug only (spec F7.5): inserts generated history. Refuses if any sleep exists,
+     * so sample data never mixes with real data. Returns an error message, or null on success.
+     */
+    suspend fun insertSampleData(sessions: List<SampleSession>, tagIdsByName: Map<String, Long>): String? = changing {
+        if (dao.count() > 0) return@changing "Sample data can only be added when the log is empty."
+        val nowMs = clock().toEpochMilli()
+        sessions.forEach { s ->
+            val id = dao.insert(
+                SleepSessionEntity(
+                    startUtc = s.start.toEpochMilli(),
+                    endUtc = s.end.toEpochMilli(),
+                    zoneId = zone().id,
+                    createdAt = nowMs,
+                    updatedAt = nowMs,
+                ),
+            )
+            checkInDao.saveCheckIn(
+                sessionId = id,
+                quality = s.quality,
+                comment = SampleData.MARKER,
+                tagIds = s.tagNames.mapNotNull { tagIdsByName[it] }.toSet(),
+                updatedAt = nowMs,
+            )
+        }
+        null
+    }
+
+    /** Removes only sessions created by [insertSampleData]. Returns how many were deleted. */
+    suspend fun deleteSampleData(): Int = changing { dao.deleteByComment(SampleData.MARKER) }
 
     private suspend inline fun <T> changing(block: () -> T): T {
         val result = writeLock.withLock { block() }

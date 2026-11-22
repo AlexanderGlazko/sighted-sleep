@@ -8,7 +8,8 @@ Personal, fully offline Android sleep tracker. Single user, single device (Nothi
 - Kotlin, Jetpack Compose, Material 3 (dark theme default)
 - Room (SQLite) for sessions/tags, DataStore for settings
 - Jetpack Glance for the home-screen widget
-- Vico for trend charts; custom Compose Canvas for the actogram
+- Custom Compose Canvas for all charts (`ui/insights/Charts.kt`, actogram in `ui/timeline`). No chart library: Vico 3.x needs Kotlin 2.4
+- Debug builds have Settings → Developer → sample data (90 days, marked with comment `[sample]`; removal never touches real sleeps)
 - AlarmManager + notifications for reminders
 - java.time for all date/time logic
 - Package: `com.sighted.sleep`

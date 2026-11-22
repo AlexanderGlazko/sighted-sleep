@@ -1,8 +1,12 @@
 package com.sighted.sleep.ui
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.ui.res.painterResource
+import com.sighted.sleep.R
+import com.sighted.sleep.ui.insights.InsightsScreen
+import com.sighted.sleep.ui.timeline.TimelineScreen
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -11,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavGraph.Companion.findStartDestination
 import androidx.navigation.NavHostController
 import androidx.navigation.NavType
@@ -22,24 +25,25 @@ import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
 import com.sighted.sleep.ui.edit.EditSessionScreen
 import com.sighted.sleep.ui.edit.EditSessionViewModel
-import com.sighted.sleep.ui.history.HistoryScreen
 import com.sighted.sleep.ui.settings.SettingsScreen
 import com.sighted.sleep.ui.today.TodayScreen
 
 private object Routes {
     const val TODAY = "today"
-    const val HISTORY = "history"
+    const val TIMELINE = "timeline"
+    const val INSIGHTS = "insights"
     const val SETTINGS = "settings"
     const val EDIT = "edit/{${EditSessionViewModel.ARG_ID}}"
     fun edit(id: Long?) = "edit/${id ?: -1}"
 }
 
-private data class Tab(val route: String, val label: String, val icon: ImageVector)
+private data class Tab(val route: String, val label: String, val icon: @Composable () -> Unit)
 
 private val tabs = listOf(
-    Tab(Routes.TODAY, "Today", Icons.Filled.Home),
-    Tab(Routes.HISTORY, "History", Icons.AutoMirrored.Filled.List),
-    Tab(Routes.SETTINGS, "Settings", Icons.Filled.Settings),
+    Tab(Routes.TODAY, "Today") { Icon(Icons.Filled.Home, contentDescription = null) },
+    Tab(Routes.TIMELINE, "Timeline") { Icon(Icons.Filled.DateRange, contentDescription = null) },
+    Tab(Routes.INSIGHTS, "Insights") { Icon(painterResource(R.drawable.ic_insights), contentDescription = null) },
+    Tab(Routes.SETTINGS, "Settings") { Icon(Icons.Filled.Settings, contentDescription = null) },
 )
 
 /**
@@ -64,12 +68,15 @@ fun AppNavigation(wakeRequest: Long = 0L) {
                 bottomBar = bottomBar,
             )
         }
-        composable(Routes.HISTORY) {
-            HistoryScreen(
+        composable(Routes.TIMELINE) {
+            TimelineScreen(
                 onEditSession = { nav.navigate(Routes.edit(it)) },
                 onAddSession = { nav.navigate(Routes.edit(null)) },
                 bottomBar = bottomBar,
             )
+        }
+        composable(Routes.INSIGHTS) {
+            InsightsScreen(bottomBar = bottomBar)
         }
         composable(Routes.SETTINGS) {
             SettingsScreen(bottomBar = bottomBar)
@@ -100,7 +107,7 @@ private fun BottomBar(nav: NavHostController) {
             NavigationBarItem(
                 selected = current == tab.route,
                 onClick = { nav.navigateToTab(tab.route) },
-                icon = { Icon(tab.icon, contentDescription = null) },
+                icon = tab.icon,
                 label = { Text(tab.label) },
             )
         }

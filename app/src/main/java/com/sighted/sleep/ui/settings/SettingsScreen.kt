@@ -49,6 +49,14 @@ import com.sighted.sleep.ui.AppViewModels
 import com.sighted.sleep.ui.checkin.ColorDot
 import com.sighted.sleep.ui.checkin.tagColor
 import kotlinx.coroutines.launch
+import android.content.pm.ApplicationInfo
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.ui.platform.LocalContext
+import java.time.DayOfWeek
+import java.time.format.TextStyle
+import java.util.Locale
 import java.time.LocalTime
 
 private val TAG_PALETTE = (PRESET_TAGS.map { it.second } + listOf("#90A4AE", "#FF8A65")).distinct()
@@ -60,7 +68,7 @@ private sealed interface SettingsDialog {
     data class EditTag(val tag: Tag?) : SettingsDialog
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
 fun SettingsScreen(
     bottomBar: @Composable () -> Unit,
@@ -68,10 +76,15 @@ fun SettingsScreen(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     var dialog by remember { mutableStateOf<SettingsDialog?>(null) }
+    val snackbar = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
+    val context = LocalContext.current
+    val isDebugBuild = remember { (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) },
         bottomBar = bottomBar,
+        snackbarHost = { SnackbarHost(snackbar) },
     ) { padding ->
         if (!state.loaded) return@Scaffold
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(bottom = 24.dp)) {
@@ -100,6 +113,30 @@ fun SettingsScreen(
             }
             item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
 
+            item { SectionHeader("Work days") }
+            item {
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(6.dp),
+                    modifier = Modifier.padding(horizontal = 16.dp),
+                ) {
+                    DayOfWeek.entries.forEach { day ->
+                        FilterChip(
+                            selected = day in state.workDays,
+                            onClick = { viewModel.toggleWorkDay(day) },
+                            label = { Text(day.getDisplayName(TextStyle.SHORT, Locale.getDefault())) },
+                        )
+                    }
+                }
+                Text(
+                    "Sleep ending on other days counts as a free day (used for social jetlag). " +
+                        "The \"Day off\" tag also marks a free day.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(horizontal = 16.dp, vertical = 4.dp),
+                )
+            }
+            item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
+
             item { SectionHeader("Tags") }
             items(state.tags, key = { it.id }) { tag ->
                 ListItem(
@@ -115,6 +152,25 @@ fun SettingsScreen(
                     headlineContent = { Text("Add tag") },
                     modifier = Modifier.clickable { dialog = SettingsDialog.EditTag(null) },
                 )
+            }
+
+            if (isDebugBuild) {
+                item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
+                item { SectionHeader("Developer (debug build only)") }
+                item {
+                    ListItem(
+                        headlineContent = { Text("Add 90 days of sample data") },
+                        supportingContent = { Text("Only when the log is empty") },
+                        modifier = Modifier.clickable { scope.launch { snackbar.showSnackbar(viewModel.addSampleData()) } },
+                    )
+                }
+                item {
+                    ListItem(
+                        headlineContent = { Text("Remove sample data") },
+                        supportingContent = { Text("Real sleeps are never touched") },
+                        modifier = Modifier.clickable { scope.launch { snackbar.showSnackbar(viewModel.removeSampleData()) } },
+                    )
+                }
             }
         }
     }

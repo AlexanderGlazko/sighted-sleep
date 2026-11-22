@@ -32,6 +32,12 @@ interface SleepSessionDao {
 
     @Query("DELETE FROM sleep_session WHERE id = :id")
     suspend fun deleteById(id: Long)
+
+    @Query("SELECT COUNT(*) FROM sleep_session")
+    suspend fun count(): Int
+
+    @Query("DELETE FROM sleep_session WHERE comment = :comment")
+    suspend fun deleteByComment(comment: String): Int
 }
 
 @Dao

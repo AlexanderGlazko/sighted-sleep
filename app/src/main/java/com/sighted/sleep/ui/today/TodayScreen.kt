@@ -138,6 +138,13 @@ fun TodayScreen(
                 )
             }
 
+            if (state.latest.main != null) {
+                Text(
+                    "Sleep debt (7 days): " +
+                        if (state.sleepDebt.isZero) "none" else formatDuration(state.sleepDebt),
+                    style = MaterialTheme.typography.titleSmall,
+                )
+            }
             Text(
                 "Target: ${state.targets.bedtime} → ${state.targets.wake} (${formatDuration(state.targets.duration)})",
                 style = MaterialTheme.typography.bodySmall,

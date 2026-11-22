@@ -11,6 +11,8 @@ import com.sighted.sleep.ui.edit.EditSessionViewModel
 import com.sighted.sleep.ui.history.HistoryViewModel
 import com.sighted.sleep.ui.settings.SettingsViewModel
 import com.sighted.sleep.ui.today.TodayViewModel
+import com.sighted.sleep.ui.timeline.TimelineViewModel
+import com.sighted.sleep.ui.insights.InsightsViewModel
 
 object AppViewModels {
     val Factory: ViewModelProvider.Factory = viewModelFactory {
@@ -19,7 +21,9 @@ object AppViewModels {
         initializer {
             app().run { EditSessionViewModel(sleepRepository, tagRepository, settingsRepository, createSavedStateHandle()) }
         }
-        initializer { app().run { SettingsViewModel(settingsRepository, tagRepository) } }
+        initializer { app().run { SettingsViewModel(settingsRepository, tagRepository, sleepRepository) } }
+        initializer { app().run { TimelineViewModel(sleepRepository, settingsRepository) } }
+        initializer { app().run { InsightsViewModel(sleepRepository, tagRepository, settingsRepository) } }
     }
 }
 

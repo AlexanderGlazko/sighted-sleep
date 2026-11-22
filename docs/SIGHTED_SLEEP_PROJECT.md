@@ -101,7 +101,7 @@ All time-of-day averages use **circular statistics** (so the mean of 23:30 and 0
 | **Bedtime / Wake time** | Clock time of `start` / `end` | Main sleep |
 | **Sleep midpoint** | Clock time of `start + duration / 2`. Best single indicator of circadian drift: rising = drifting later, flat = stable, zig-zag = chaotic | Main sleep |
 | **Bedtime / wake deviation** | Signed circular difference from target (e.g. "+47 min late") | Main sleep |
-| **Sleep debt** | Rolling 7-day sum of `(target duration − daily total)`. Surplus offsets deficit, but debt never goes below 0 | All sessions |
+| **Sleep debt** | Rolling 7-day sum of `(target duration − daily total)`. Surplus offsets deficit, but debt never goes below 0. Days with nothing logged are skipped (missing data isn't counted as zero sleep) | All sessions |
 | **Consistency score (0–100)** | `100 − (avgSD × 100 / 120)`, clamped to 0–100, where `avgSD` = mean of circular standard deviation (minutes) of bedtime and wake time in the period. 0 min SD → 100; ≥ 120 min SD → 0. *Constant is tunable.* | Main sleep, period ≥ 3 sessions |
 | **Social jetlag** | `|circular mean midpoint (free-day sleeps) − circular mean midpoint (work-day sleeps)|` in hours. > 1h is considered high | Main sleep, period needs both day types |
 | **Quality by timing** | Average quality score grouped by main-sleep bedtime in **30-min buckets**. Buckets with < 3 sessions shown greyed as "not enough data" | Rated main sleeps |
@@ -187,7 +187,9 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 
 Bottom navigation with 4 destinations, Material 3 defaults first, refined later in Figma.
 
-> **Build order note (Phase 1):** the app starts with **Today** and **History** tabs. History is the session list (F5.8), pulled forward because Phase 1 needs a place to review and edit sessions. Timeline, Insights and Settings tabs are added in their phases; whether History stays a separate tab or moves inside Timeline is decided in Phase 3.
+> **Build order note (Phase 1):** the app starts with **Today** and **History** tabs. History is the session list (F5.8), pulled forward because Phase 1 needs a place to review and edit sessions. Timeline, Insights and Settings tabs are added in their phases.
+>
+> **Decided in Phase 3:** History moved inside **Timeline** as a *Chart | List* toggle, so the app has the 4 tabs above. Tapping an actogram row opens that day's sleep (or a picker if the day has several).
 
 ```
 ┌ Today ──────────┬ Timeline ───────┬ Insights ───────┬ Settings ───────┐
@@ -253,7 +255,7 @@ SessionTag(sessionId: Long, tagId: Long)   // composite PK, cascade delete
 | Database | **Room (SQLite)** | Local, typed queries, migrations |
 | Settings | **DataStore (Preferences)** | Lightweight key-value |
 | Date/time | **java.time** | Time-zone and DST-safe |
-| Charts | **Vico** (trends) + **custom Compose Canvas** (actogram, quality-by-timing) | Vico for standard charts; the actogram needs custom drawing |
+| Charts | **Custom Compose Canvas** for all charts (actogram, trends, quality-by-timing) | Decided in Phase 3: current Vico (3.x) needs Kotlin 2.4 while the project uses 2.2, and custom drawing keeps charts fully stylable for the design pass with no extra dependency |
 | Reminders | **AlarmManager** (exact alarms) + **NotificationManager**; BootReceiver to reschedule | Works fully offline at exact times |
 | File I/O | **Storage Access Framework** | Export/import without storage permissions |
 | Architecture | Single module, **MVVM**: `ui/` · `data/` · `domain/` (pure-Kotlin metrics engine) | Simple enough to vibecode, testable |
