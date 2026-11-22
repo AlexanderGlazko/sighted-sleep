@@ -113,7 +113,8 @@ fun TimelineScreen(
                     row.segments.distinctBy { it.sessionId }.forEach { seg ->
                         ListItem(
                             headlineContent = {
-                                Text("${CircularTime.format(seg.startMin)} – ${CircularTime.format(seg.endMin)}")
+                                val base = TimelineViewModel.ROW_START_CLOCK_MIN
+                                Text("${CircularTime.format(base + seg.startMin)} – ${CircularTime.format(base + seg.endMin)}")
                             },
                             supportingContent = { Text(if (seg.type == SessionType.MAIN) "Main sleep" else "Nap") },
                             modifier = Modifier.clickable { dayPicker = null; onEditSession(seg.sessionId) },
@@ -147,7 +148,8 @@ private fun Actogram(state: TimelineUiState, onDayClick: (ActogramRow) -> Unit) 
         }
         // Hour axis
         Row(Modifier.padding(start = 16.dp + LABEL_WIDTH, end = 16.dp, top = 4.dp)) {
-            listOf("00", "06", "12", "18", "24").forEachIndexed { i, h ->
+            // Labels every 6h from the row start: 15 · 21 · 03 · 09 · 15
+            (0..4).map { CircularTime.format(TimelineViewModel.ROW_START_CLOCK_MIN + it * 360).take(2) }.forEachIndexed { i, h ->
                 Text(h, style = MaterialTheme.typography.labelSmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 if (i < 4) Spacer(Modifier.weight(1f))
             }
@@ -189,18 +191,22 @@ private fun DrawScope.drawRow(
     val h = size.height
     fun x(min: Int) = w * min / CircularTime.DAY
 
+    // Clock time → minutes from the row's left edge (15:00).
+    fun pos(clockMin: Int) = ((clockMin - TimelineViewModel.ROW_START_CLOCK_MIN) % CircularTime.DAY + CircularTime.DAY) % CircularTime.DAY
+
     drawRect(track)
-    // Target band (may wrap past midnight, e.g. 23:00 → 07:00)
-    val bed = targets.bedtime.hour * 60 + targets.bedtime.minute
-    val wake = targets.wake.hour * 60 + targets.wake.minute
+    // Target band. With 15:00-based rows a normal night (e.g. 23:00 → 07:00) is one block; wrap only if needed.
+    val bed = pos(targets.bedtime.hour * 60 + targets.bedtime.minute)
+    val wake = pos(targets.wake.hour * 60 + targets.wake.minute)
     if (bed < wake) {
         drawRect(band, Offset(x(bed), 0f), Size(x(wake) - x(bed), h))
     } else {
         drawRect(band, Offset(x(bed), 0f), Size(w - x(bed), h))
         drawRect(band, Offset(0f, 0f), Size(x(wake), h))
     }
-    // 6-hour grid
+    // 6-hour grid (21:00, 03:00, 09:00) plus a stronger midnight line.
     listOf(360, 720, 1080).forEach { drawLine(grid, Offset(x(it), 0f), Offset(x(it), h), strokeWidth = 1f) }
+    drawLine(grid, Offset(x(pos(0)), 0f), Offset(x(pos(0)), h), strokeWidth = 3f)
     // Sleep segments
     row.segments.forEach { seg ->
         val color = if (seg.type == SessionType.MAIN) main else nap

@@ -157,7 +157,7 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 | ID | Feature | Pri |
 |---|---|---|
 | F5.1 | **Today**: last night's sleep, score, deviation, 7-day sleep debt, active-session state | M |
-| F5.2 | **Sleep timeline (actogram)**: one row per day, sleep drawn as bars across 00:00–24:00, naps lighter, target band shaded. Scrollable through history. *Key view for shifts.* | M |
+| F5.2 | **Sleep timeline (actogram)**: one row per day, sleep drawn as bars, naps lighter, target band shaded. Scrollable through history. *Key view for shifts.* Rows run **15:00 → 15:00** (axis 15 · 21 · 03 · 09 · 15) so a night is one unbroken bar in the middle of the row, labelled with the date you woke up. Only sleep crossing 15:00 (e.g. an afternoon nap) is split across two rows | M |
 | F5.3 | **Trends** with Day / Week / Month / Year selector: duration, bedtime, wake, midpoint, quality | M |
 | F5.4 | Consistency score and social jetlag cards per period | M |
 | F5.5 | Quality by timing chart | S |

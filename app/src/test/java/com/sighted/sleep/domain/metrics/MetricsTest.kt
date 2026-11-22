@@ -158,6 +158,28 @@ class SleepMetricsTest {
     }
 
     @Test
+    fun `15-to-15 rows keep a night in one row, labelled by wake date`() {
+        val night = session(1, "2026-11-16T23:00", "2026-11-17T07:00")
+        val nap = session(2, "2026-11-17T16:00", "2026-11-17T16:30") // after 15:00 → next row
+        val rows = SleepMetrics.daySegments(
+            listOf(night, nap), mapOf(1L to SessionType.MAIN, 2L to SessionType.NAP), at("2026-11-20T12:00"),
+            rowStartOffsetMinutes = -540,
+        )
+        // Row 17 Nov starts 16 Nov 15:00: 23:00 is +480 min, 07:00 is +960 min.
+        assertEquals(listOf(DaySegment(1, 480, 960, SessionType.MAIN)), rows[LocalDate.parse("2026-11-17")])
+        assertEquals(listOf(DaySegment(2, 60, 90, SessionType.NAP)), rows[LocalDate.parse("2026-11-18")])
+        assertNull(rows[LocalDate.parse("2026-11-16")])
+    }
+
+    @Test
+    fun `sleep crossing 15 00 splits across rows`() {
+        val s = session(1, "2026-11-17T13:00", "2026-11-17T17:00")
+        val rows = SleepMetrics.daySegments(listOf(s), mapOf(1L to SessionType.NAP), at("2026-11-20T12:00"), -540)
+        assertEquals(listOf(DaySegment(1, 1320, 1440, SessionType.NAP)), rows[LocalDate.parse("2026-11-17")])
+        assertEquals(listOf(DaySegment(1, 0, 120, SessionType.NAP)), rows[LocalDate.parse("2026-11-18")])
+    }
+
+    @Test
     fun `active session is drawn until now`() {
         val s = session(1, "2026-11-20T23:00", null)
         val rows = SleepMetrics.daySegments(listOf(s), emptyMap(), at("2026-11-21T02:00"))

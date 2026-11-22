@@ -80,16 +80,29 @@ object SleepMetrics {
         return totals
     }
 
-    /** Sessions cut into per-day pieces for the actogram, keyed by local date. */
-    fun daySegments(sessions: List<SleepSession>, types: Map<Long, SessionType>, now: Instant): Map<LocalDate, List<DaySegment>> {
+    /**
+     * Sessions cut into per-row pieces for the actogram, keyed by row date.
+     *
+     * Row D covers 24h starting at D 00:00 + [rowStartOffsetMinutes]. With the default 0 a row is the
+     * calendar day. With −540 a row runs from 15:00 the day before to 15:00 on D, so a whole night sits
+     * in the middle of one row, labelled with the date you woke up (matches spec §3.3 end-date attribution).
+     * [DaySegment] minutes are measured from the row start.
+     */
+    fun daySegments(
+        sessions: List<SleepSession>,
+        types: Map<Long, SessionType>,
+        now: Instant,
+        rowStartOffsetMinutes: Int = 0,
+    ): Map<LocalDate, List<DaySegment>> {
+        val offset = rowStartOffsetMinutes.toLong()
         val rows = mutableMapOf<LocalDate, MutableList<DaySegment>>()
         sessions.forEach { s ->
             val end = s.end ?: now
             val type = types[s.id] ?: SessionType.MAIN
-            var day = s.start.atZone(s.zone).toLocalDate()
+            var day = s.start.atZone(s.zone).toLocalDateTime().minusMinutes(offset).toLocalDate()
             while (true) {
-                val dayStart = day.atStartOfDay(s.zone).toInstant()
-                val dayEnd = day.plusDays(1).atStartOfDay(s.zone).toInstant()
+                val dayStart = day.atStartOfDay(s.zone).plusMinutes(offset).toInstant()
+                val dayEnd = day.plusDays(1).atStartOfDay(s.zone).plusMinutes(offset).toInstant()
                 if (!dayStart.isBefore(end)) break
                 val from = maxOf(s.start, dayStart)
                 val to = minOf(end, dayEnd)

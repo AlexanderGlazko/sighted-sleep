@@ -43,15 +43,27 @@ class TimelineViewModel(repository: SleepRepository, settings: SettingsRepositor
         settings.workDays,
         minuteTicker,
     ) { sessions, targets, workDays, now ->
-        val segments = SleepMetrics.daySegments(sessions, SessionClassifier.classify(sessions), now)
+        val segments = SleepMetrics.daySegments(
+            sessions, SessionClassifier.classify(sessions), now, rowStartOffsetMinutes = ROW_START_OFFSET_MIN,
+        )
         val today = LocalDate.now(ZoneId.systemDefault())
         val first = segments.keys.minOrNull()
+        // A sleep started this evening belongs to tomorrow's row (the day you'll wake up).
+        val last = maxOf(today, segments.keys.maxOrNull() ?: today)
         val rows = if (first == null) emptyList() else {
-            generateSequence(today) { it.minusDays(1) }
+            generateSequence(last) { it.minusDays(1) }
                 .takeWhile { !it.isBefore(first) }
                 .map { d -> ActogramRow(d, segments[d].orEmpty(), d.dayOfWeek in workDays) }
                 .toList()
         }
         TimelineUiState(loaded = true, rows = rows, targets = targets)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState())
+
+    companion object {
+        /** Rows run 15:00 (day before) → 15:00, keeping a typical night in the middle of one row. */
+        const val ROW_START_OFFSET_MIN = -9 * 60
+
+        /** Clock time at the left edge of a row, in minutes after midnight (15:00). */
+        const val ROW_START_CLOCK_MIN = 24 * 60 + ROW_START_OFFSET_MIN
+    }
 }
