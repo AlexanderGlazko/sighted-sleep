@@ -3,6 +3,8 @@ package com.sighted.sleep.widget
 import android.content.Context
 import android.content.Intent
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
@@ -39,8 +41,11 @@ import com.sighted.sleep.ui.startTimeText
 class SleepWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val app = context.applicationContext as SightedSleepApp
-        val active = app.sleepRepository.getActive()
+        val initial = app.sleepRepository.getActive()
         provideContent {
+            // Follow the database live: a Glance session stays open for a while after each update,
+            // and a value read once before provideContent would go stale (shows "Wake up" after waking).
+            val active by app.sleepRepository.activeSession.collectAsState(initial = initial)
             GlanceTheme { WidgetContent(active) }
         }
     }
