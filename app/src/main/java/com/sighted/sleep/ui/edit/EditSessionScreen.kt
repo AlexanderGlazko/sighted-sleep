@@ -44,6 +44,9 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sighted.sleep.domain.formatDuration
 import com.sighted.sleep.ui.AppViewModels
 import com.sighted.sleep.ui.dayText
+import com.sighted.sleep.ui.checkin.CheckInForm
+import androidx.compose.material3.HorizontalDivider
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime
@@ -124,6 +127,12 @@ fun EditSessionScreen(
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                 )
+            }
+
+            if (!state.stillSleeping) {
+                HorizontalDivider()
+                val tags by viewModel.tags.collectAsStateWithLifecycle()
+                CheckInForm(checkIn = state.checkIn, tags = tags, onChange = viewModel::setCheckIn)
             }
 
             state.error?.let {

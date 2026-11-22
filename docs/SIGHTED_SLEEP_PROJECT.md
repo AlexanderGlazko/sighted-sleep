@@ -143,7 +143,7 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 | ID | Feature | Pri |
 |---|---|---|
 | F3.1 | Preset tags: Caffeine late, Alcohol, Late meal, Screens in bed, Late work, Exercise, Stress, Illness, Travel, Social event, **Day off** | M |
-| F3.2 | Custom tags: create, rename, change colour, archive (archived tags keep their history) | M |
+| F3.2 | Custom tags: create, rename, change colour, archive (archived tags keep their history). Names are unique ignoring case. A custom tag that no sleep uses can be deleted; preset or used tags can only be archived | M |
 | F3.3 | Tags attach to **sleep sessions** (many-to-many) | M |
 
 ### F4. Targets

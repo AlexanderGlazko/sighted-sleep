@@ -1,9 +1,11 @@
 package com.sighted.sleep.data
 
+import com.sighted.sleep.data.db.CheckInDao
 import com.sighted.sleep.data.db.SleepSessionDao
 import com.sighted.sleep.data.db.SleepSessionEntity
 import com.sighted.sleep.domain.SessionValidator
 import com.sighted.sleep.domain.ValidationError
+import com.sighted.sleep.domain.model.CheckIn
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.SleepSession
 import kotlinx.coroutines.flow.Flow
@@ -13,30 +15,63 @@ import kotlinx.coroutines.sync.withLock
 import java.time.Instant
 import java.time.ZoneId
 
+sealed interface SaveOutcome {
+    data class Saved(val id: Long) : SaveOutcome
+    data class Invalid(val error: ValidationError) : SaveOutcome
+}
+
 /**
  * Single entry point for reading and changing sleep sessions.
  * All writes are validated (spec §3.6) and serialised with a mutex,
- * so the app and (later) the widget can't create two active sessions.
+ * so the app and the widget can't create two active sessions.
  */
 class SleepRepository(
     private val dao: SleepSessionDao,
+    private val checkInDao: CheckInDao,
     private val clock: () -> Instant = Instant::now,
     private val zone: () -> ZoneId = ZoneId::systemDefault,
+    /** Called after any change to sessions (used to refresh the home-screen widget). */
+    private val onSessionsChanged: suspend () -> Unit = {},
 ) {
     private val writeLock = Mutex()
 
     val sessions: Flow<List<SleepSession>> = dao.observeAll().map { list -> list.map { it.toDomain() } }
     val activeSession: Flow<SleepSession?> = dao.observeActive().map { it?.toDomain() }
 
+    /** sessionId → tag ids. */
+    val sessionTags: Flow<Map<Long, Set<Long>>> = checkInDao.observeAllSessionTags().map { rows ->
+        rows.groupBy({ it.sessionId }, { it.tagId }).mapValues { it.value.toSet() }
+    }
+
     fun now(): Instant = clock()
 
     suspend fun getSession(id: Long): SleepSession? = dao.getById(id)?.toDomain()
+    suspend fun getActive(): SleepSession? = dao.getActive()?.toDomain()
+
+    suspend fun getCheckIn(sessionId: Long): CheckIn {
+        val session = dao.getById(sessionId) ?: return CheckIn()
+        return CheckIn(
+            quality = session.quality,
+            tagIds = checkInDao.getTagIds(sessionId).toSet(),
+            comment = session.comment.orEmpty(),
+        )
+    }
+
+    suspend fun saveCheckIn(sessionId: Long, checkIn: CheckIn) {
+        checkInDao.saveCheckIn(
+            sessionId = sessionId,
+            quality = checkIn.quality?.coerceIn(1, 10),
+            comment = checkIn.comment.trim().ifEmpty { null },
+            tagIds = checkIn.tagIds,
+            updatedAt = clock().toEpochMilli(),
+        )
+    }
 
     /** Starts a new active session now. Returns an error if one is already running. */
-    suspend fun startSleep(): ValidationError? = writeLock.withLock {
+    suspend fun startSleep(): ValidationError? = changing {
         val now = clock()
         val existing = dao.getAll().map { it.toDomain() }
-        SessionValidator.validate(null, now, null, existing, now)?.let { return it }
+        SessionValidator.validate(null, now, null, existing, now)?.let { return@changing it }
         dao.insert(
             SleepSessionEntity(
                 startUtc = now.toEpochMilli(),
@@ -50,8 +85,8 @@ class SleepRepository(
     }
 
     /** Ends the active session now and returns it, or null if nothing was running. */
-    suspend fun stopSleep(): SleepSession? = writeLock.withLock {
-        val active = dao.getActive() ?: return null
+    suspend fun stopSleep(): SleepSession? = changing {
+        val active = dao.getActive() ?: return@changing null
         val now = clock().toEpochMilli().coerceAtLeast(active.startUtc + 1)
         val finished = active.copy(endUtc = now, updatedAt = now)
         dao.update(finished)
@@ -64,14 +99,14 @@ class SleepRepository(
         start: Instant,
         end: Instant?,
         typeOverride: SessionType?,
-    ): ValidationError? = writeLock.withLock {
+    ): SaveOutcome = changing {
         val now = clock()
         val existing = dao.getAll().map { it.toDomain() }
-        SessionValidator.validate(id, start, end, existing, now)?.let { return it }
+        SessionValidator.validate(id, start, end, existing, now)?.let { return@changing SaveOutcome.Invalid(it) }
         val nowMs = now.toEpochMilli()
         val current = id?.let { dao.getById(it) }
         if (current == null) {
-            dao.insert(
+            val newId = dao.insert(
                 SleepSessionEntity(
                     startUtc = start.toEpochMilli(),
                     endUtc = end?.toEpochMilli(),
@@ -81,6 +116,7 @@ class SleepRepository(
                     updatedAt = nowMs,
                 ),
             )
+            SaveOutcome.Saved(newId)
         } else {
             dao.update(
                 current.copy(
@@ -90,11 +126,17 @@ class SleepRepository(
                     updatedAt = nowMs,
                 ),
             )
+            SaveOutcome.Saved(current.id)
         }
-        null
     }
 
-    suspend fun delete(id: Long) = writeLock.withLock { dao.deleteById(id) }
+    suspend fun delete(id: Long) = changing { dao.deleteById(id) }
+
+    private suspend inline fun <T> changing(block: () -> T): T {
+        val result = writeLock.withLock { block() }
+        onSessionsChanged()
+        return result
+    }
 }
 
 private fun SleepSessionEntity.toDomain() = SleepSession(

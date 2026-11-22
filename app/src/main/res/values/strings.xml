@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Sighted Sleep</string>
+    <string name="widget_description">One tap to log going to sleep and waking up</string>
 </resources>

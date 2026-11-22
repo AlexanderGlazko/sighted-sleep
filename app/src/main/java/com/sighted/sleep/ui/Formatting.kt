@@ -1,6 +1,9 @@
 package com.sighted.sleep.ui
 
+import com.sighted.sleep.domain.TargetMath
 import com.sighted.sleep.domain.ValidationError
+import com.sighted.sleep.domain.formatDeviation
+import com.sighted.sleep.domain.model.Targets
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.SleepSession
 import java.time.LocalDate
@@ -21,6 +24,14 @@ fun LocalDate.dayText(today: LocalDate = LocalDate.now()): String = when (this) 
     today -> "Today"
     today.minusDays(1) -> "Yesterday"
     else -> format(if (year == today.year) dayFormat else dayYearFormat)
+}
+
+/** "Bedtime 47m late · Wake on time" relative to the target schedule (spec F4.2). */
+fun SleepSession.deviationText(targets: Targets): String? {
+    val endTime = end?.atZone(zone)?.toLocalTime() ?: return null
+    val bed = TargetMath.deviationMinutes(start.atZone(zone).toLocalTime(), targets.bedtime)
+    val wake = TargetMath.deviationMinutes(endTime, targets.wake)
+    return "Bedtime ${formatDeviation(bed)} · Wake ${formatDeviation(wake)}"
 }
 
 fun SessionType.label(): String = when (this) {

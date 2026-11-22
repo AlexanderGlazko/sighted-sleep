@@ -30,6 +30,9 @@ import com.sighted.sleep.ui.AppViewModels
 import com.sighted.sleep.ui.dayText
 import com.sighted.sleep.ui.label
 import com.sighted.sleep.ui.rangeText
+import com.sighted.sleep.ui.deviationText
+import com.sighted.sleep.domain.model.SessionType
+import androidx.compose.foundation.layout.Column
 import java.time.Instant
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -75,7 +78,19 @@ fun HistoryScreen(
                     ListItem(
                         headlineContent = { Text(s.rangeText()) },
                         supportingContent = {
-                            Text(row.type?.label() ?: "Sleeping now")
+                            Column {
+                                val rating = when {
+                                    s.isActive -> null
+                                    s.quality != null -> "${s.quality}/10"
+                                    else -> "not rated"
+                                }
+                                Text(listOfNotNull(row.type?.label() ?: "Sleeping now", rating).joinToString(" · "))
+                                if (row.type == SessionType.MAIN) {
+                                    s.deviationText(state.targets)?.let {
+                                        Text(it, style = MaterialTheme.typography.bodySmall)
+                                    }
+                                }
+                            }
                         },
                         trailingContent = {
                             Text(

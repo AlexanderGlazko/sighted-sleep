@@ -14,6 +14,7 @@ import androidx.sqlite.db.SupportSQLiteDatabase
 abstract class SightedSleepDatabase : RoomDatabase() {
     abstract fun sessionDao(): SleepSessionDao
     abstract fun tagDao(): TagDao
+    abstract fun checkInDao(): CheckInDao
 
     companion object {
         fun create(context: Context): SightedSleepDatabase =

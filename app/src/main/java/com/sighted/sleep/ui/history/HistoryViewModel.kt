@@ -2,13 +2,15 @@ package com.sighted.sleep.ui.history
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sighted.sleep.data.SettingsRepository
 import com.sighted.sleep.data.SleepRepository
 import com.sighted.sleep.domain.SessionClassifier
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.SleepSession
+import com.sighted.sleep.domain.model.Targets
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 
@@ -17,15 +19,19 @@ data class HistoryRow(val session: SleepSession, val type: SessionType?)
 /** Sessions grouped by the day they ended; date == null holds the active session. */
 data class HistoryDay(val date: LocalDate?, val rows: List<HistoryRow>)
 
-data class HistoryUiState(val loaded: Boolean = false, val days: List<HistoryDay> = emptyList())
+data class HistoryUiState(
+    val loaded: Boolean = false,
+    val days: List<HistoryDay> = emptyList(),
+    val targets: Targets = Targets(),
+)
 
-class HistoryViewModel(repository: SleepRepository) : ViewModel() {
-    val state: StateFlow<HistoryUiState> = repository.sessions.map { sessions ->
+class HistoryViewModel(repository: SleepRepository, settings: SettingsRepository) : ViewModel() {
+    val state: StateFlow<HistoryUiState> = combine(repository.sessions, settings.targets) { sessions, targets ->
         val types = SessionClassifier.classify(sessions)
         val days = sessions
             .sortedByDescending { it.end ?: it.start }
             .groupBy { it.endDate }
             .map { (date, list) -> HistoryDay(date, list.map { HistoryRow(it, types[it.id]) }) }
-        HistoryUiState(loaded = true, days = days)
+        HistoryUiState(loaded = true, days = days, targets = targets)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), HistoryUiState())
 }

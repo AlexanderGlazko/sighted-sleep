@@ -6,9 +6,18 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sighted.sleep.data.SaveOutcome
+import com.sighted.sleep.data.SettingsRepository
 import com.sighted.sleep.data.SleepRepository
+import com.sighted.sleep.data.TagRepository
+import com.sighted.sleep.domain.TargetMath
+import com.sighted.sleep.domain.model.CheckIn
 import com.sighted.sleep.domain.model.SessionType
+import com.sighted.sleep.domain.model.Tag
 import com.sighted.sleep.ui.message
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
 import java.time.Duration
 import java.time.LocalDate
@@ -31,17 +40,23 @@ data class EditUiState(
     val endDate: LocalDate = LocalDate.now(),
     val endTime: LocalTime = LocalTime.of(7, 0),
     val type: TypeChoice = TypeChoice.AUTO,
+    val checkIn: CheckIn = CheckIn(),
     val error: String? = null,
     val done: Boolean = false,
 )
 
 class EditSessionViewModel(
     private val repository: SleepRepository,
+    tagRepository: TagRepository,
+    private val settings: SettingsRepository,
     savedStateHandle: SavedStateHandle,
 ) : ViewModel() {
 
     private val sessionId: Long? = savedStateHandle.get<Long>(ARG_ID)?.takeIf { it >= 0 }
     private var zone: ZoneId = ZoneId.systemDefault()
+
+    val tags: StateFlow<List<Tag>> =
+        tagRepository.tags.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), emptyList())
 
     var state by mutableStateOf(EditUiState())
         private set
@@ -53,10 +68,9 @@ class EditSessionViewModel(
     private suspend fun load() {
         val session = sessionId?.let { repository.getSession(it) }
         if (session == null) {
-            // New session: default to the last 8 hours, ending now (rounded down to 5 minutes).
+            // New session: default to the last finished target night (spec F4).
             val now = LocalDateTime.now(zone).truncatedTo(ChronoUnit.MINUTES)
-            val end = now.minusMinutes(now.minute % 5L)
-            val start = end.minusHours(8)
+            val (start, end) = TargetMath.defaultManualRange(now, settings.currentTargets())
             state = EditUiState(
                 loaded = true,
                 startDate = start.toLocalDate(), startTime = start.toLocalTime(),
@@ -79,6 +93,7 @@ class EditSessionViewModel(
                 SessionType.NAP -> TypeChoice.NAP
                 null -> TypeChoice.AUTO
             },
+            checkIn = repository.getCheckIn(session.id),
         )
     }
 
@@ -88,6 +103,7 @@ class EditSessionViewModel(
     fun setEndTime(t: LocalTime) = update { copy(endTime = t) }
     fun setType(t: TypeChoice) = update { copy(type = t) }
     fun setStillSleeping(v: Boolean) = update { copy(stillSleeping = v) }
+    fun setCheckIn(c: CheckIn) = update { copy(checkIn = c) }
 
     /** Duration preview, or null if the times are invalid. */
     fun previewDuration(): Duration? {
@@ -103,8 +119,13 @@ class EditSessionViewModel(
             TypeChoice.NAP -> SessionType.NAP
         }
         val end = if (state.stillSleeping) null else endInstant()
-        val error = repository.save(sessionId, startInstant(), end, override)
-        state = if (error != null) state.copy(error = error.message()) else state.copy(done = true)
+        state = when (val outcome = repository.save(sessionId, startInstant(), end, override)) {
+            is SaveOutcome.Invalid -> state.copy(error = outcome.error.message())
+            is SaveOutcome.Saved -> {
+                repository.saveCheckIn(outcome.id, state.checkIn)
+                state.copy(done = true)
+            }
+        }
     }
 
     fun delete() = viewModelScope.launch {
