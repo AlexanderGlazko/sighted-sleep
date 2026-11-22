@@ -30,9 +30,22 @@ Single module, MVVM:
 - Keep UI on Material 3 defaults until a design pass is requested.
 
 ## Workflow
-- One feature (or a small group of feature IDs) per task.
-- After a change: build, run unit tests, then summarise what to check on the phone.
+- One feature (or a small group of feature IDs) per task, on its own branch (`phase-N/...` style), fast-forward merged into `main` after the user confirms; merged branches get deleted.
+- After a change: build, run unit tests, install, then check on the phone and summarise what the user should check.
 - Commit to Git after each working step with a clear message.
+
+## Testing on the phone (the phone holds REAL data)
+- Drive it over adb: `screencap` + `uiautomator dump` to read screens, `input tap/swipe` to act. Keep the screen awake while testing.
+- **Read-only by default.** Never add, edit, delete or import on real data without asking. Leave edit screens with Back, not Save.
+- Never answer system permission prompts (notifications etc.) for the user.
+- Sample data (debug) can only be added to an empty log.
+- Installing with `installDebug` is an in-place update and keeps data. Never uninstall.
+
+## Status (2026-11-22)
+- **All planned phases (0–5) are done and on `main`.** Features: logging + widget, check-in, tags, targets, work days, Timeline (actogram rows 15:00→15:00, list with tag filter), Insights (Day/Week/Month/Year, cards with Δ vs previous period, trend charts, quality by bedtime, tag impact), reminders, JSON/CSV export + JSON import. 70 unit tests.
+- **Verified on phone:** everything except: JSON import (user skipped the test), reminders actually firing (user must enable them + allow notifications), widget Wake tap after the Phase 5 AppRequest refactor (same intent action, not re-tapped).
+- **Next (optional):** design pass. The user designs screens in Figma; restyle theme (`ui/theme`), `ui/insights/Charts.kt`, `ui/timeline/TimelineScreen.kt`, widget (`widget/SleepWidget.kt`).
+- **Known trade-offs:** sleeps crossing 15:00 are split across two actogram rows (the user's real data has daytime sleep, e.g. 12:13→18:09); the Year chart's month labels skip some months.
 
 ## Commands (PowerShell, from project root)
 Java isn't on PATH; use Android Studio's bundled JDK first in each shell:
