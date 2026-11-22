@@ -160,10 +160,10 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 | F5.2 | **Sleep timeline (actogram)**: one row per day, sleep drawn as bars, naps lighter, target band shaded. Scrollable through history. *Key view for shifts.* Rows run **15:00 → 15:00** (axis 15 · 21 · 03 · 09 · 15) so a night is one unbroken bar in the middle of the row, labelled with the date you woke up. Only sleep crossing 15:00 (e.g. an afternoon nap) is split across two rows | M |
 | F5.3 | **Trends** with Day / Week / Month / Year selector: duration, bedtime, wake, midpoint, quality | M |
 | F5.4 | Consistency score and social jetlag cards per period | M |
-| F5.5 | Quality by timing chart | S |
-| F5.6 | Tag impact list | S |
-| F5.7 | Period comparison (Δ vs previous period) | S |
-| F5.8 | Session list / history with filter by tag | S |
+| F5.5 | Quality by timing chart: average quality per 30-min bedtime bucket for the selected period (Week/Month/Year); "best bedtime" picked only from buckets with ≥ 3 rated nights | S |
+| F5.6 | Tag impact list for the selected period: quality, duration and midpoint shift with vs. without each used tag; each value shown only when both sides have ≥ 3 nights; sorted by quality effect; labelled as patterns, not cause | S |
+| F5.7 | Period comparison: each summary card shows Δ vs the previous period of the same kind (hidden when that period has no data) | S |
+| F5.8 | Session list / history (Timeline → List) with a tag filter row showing tags that are on at least one sleep | S |
 
 ### F6. Reminders (each toggle independent, all off by default)
 | ID | Feature | Pri |

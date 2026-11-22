@@ -17,7 +17,7 @@ import com.sighted.sleep.ui.insights.InsightsViewModel
 object AppViewModels {
     val Factory: ViewModelProvider.Factory = viewModelFactory {
         initializer { app().run { TodayViewModel(sleepRepository, tagRepository, settingsRepository) } }
-        initializer { app().run { HistoryViewModel(sleepRepository, settingsRepository) } }
+        initializer { app().run { HistoryViewModel(sleepRepository, tagRepository, settingsRepository) } }
         initializer {
             app().run { EditSessionViewModel(sleepRepository, tagRepository, settingsRepository, createSavedStateHandle()) }
         }

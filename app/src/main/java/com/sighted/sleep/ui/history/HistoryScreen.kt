@@ -26,6 +26,11 @@ import com.sighted.sleep.ui.dayText
 import com.sighted.sleep.ui.deviationText
 import com.sighted.sleep.ui.label
 import com.sighted.sleep.ui.rangeText
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.lazy.LazyRow
+import androidx.compose.material3.FilterChip
+import com.sighted.sleep.ui.checkin.ColorDot
+import com.sighted.sleep.ui.checkin.tagColor
 import java.time.Instant
 
 /** All sessions as a list grouped by day (spec F5.8). Shown inside the Timeline tab. */
@@ -37,13 +42,40 @@ fun HistoryList(
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
 
-    if (state.loaded && state.days.isEmpty()) {
+    if (state.loaded && state.days.isEmpty() && state.filterTagId == null) {
         Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
             Text("No sleep logged yet.", style = MaterialTheme.typography.bodyLarge)
         }
         return
     }
     LazyColumn(modifier = modifier.fillMaxSize(), contentPadding = PaddingValues(bottom = 88.dp)) {
+        // Filter by tag (spec F5.8): only tags that are on at least one sleep.
+        if (state.usedTags.isNotEmpty()) {
+            item(key = "filter") {
+                LazyRow(
+                    contentPadding = PaddingValues(horizontal = 16.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                ) {
+                    items(state.usedTags, key = { it.id }) { tag ->
+                        FilterChip(
+                            selected = state.filterTagId == tag.id,
+                            onClick = { viewModel.toggleFilter(tag.id) },
+                            label = { Text(tag.name) },
+                            leadingIcon = { ColorDot(tagColor(tag.colorHex)) },
+                        )
+                    }
+                }
+            }
+        }
+        if (state.days.isEmpty()) {
+            item(key = "empty") {
+                Text(
+                    "No sleeps with this tag.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    modifier = Modifier.padding(16.dp),
+                )
+            }
+        }
         state.days.forEach { day ->
             item(key = "day-${day.date}") {
                 Text(

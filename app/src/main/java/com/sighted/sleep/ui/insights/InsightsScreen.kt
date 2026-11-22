@@ -99,37 +99,60 @@ fun InsightsScreen(
                 return@Column
             }
 
-            SummaryCards(summary, state.targets, state.period)
+            SummaryCards(summary, state.previous, state.targets, state.period)
 
             if (state.period != Period.DAY && state.trend.isNotEmpty()) {
                 TrendCharts(state.trend, state.period, state.targets)
+            }
+
+            if (state.period != Period.DAY) {
+                BestBedtimeCard(state.bedtimeBuckets, state.bestBedtime)
+                TagImpactCard(state.tagImpacts)
             }
         }
     }
 }
 
 @Composable
-private fun SummaryCards(s: PeriodSummary, targets: Targets, period: Period) {
+private fun SummaryCards(s: PeriodSummary, prev: PeriodSummary?, targets: Targets, period: Period) {
     val bedTarget = targets.bedtime.toMinutes()
     val wakeTarget = targets.wake.toMinutes()
+    val vs = when (period) {
+        Period.DAY -> "the day before"
+        Period.WEEK -> "previous week"
+        Period.MONTH -> "previous month"
+        Period.YEAR -> "previous year"
+    }
+    // "+25m vs previous week" etc. (spec F5.7); null when either side has no value.
+    fun durDelta(a: Duration?, b: Duration?) = if (a != null && b != null) signedDuration(a.toMinutes() - b.toMinutes()) else null
+    fun clockDelta(a: Int?, b: Int?) = if (a != null && b != null) CircularTime.diff(a, b).let {
+        if (kotlin.math.abs(it) < 5) "same" else "${formatDuration(Duration.ofMinutes(kotlin.math.abs(it).toLong()))} ${if (it > 0) "later" else "earlier"}"
+    } else null
+    fun cmp(text: String?) = text?.let { "$it vs $vs" }
+
     val cards = buildList {
         add(Stat(if (period == Period.DAY) "Sleep" else "Avg sleep / day", s.avgDailyTotal?.let(::formatDuration) ?: "–",
-            "Target ${formatDuration(targets.duration)}"))
+            "Target ${formatDuration(targets.duration)}", cmp(durDelta(s.avgDailyTotal, prev?.avgDailyTotal))))
         add(Stat("Sleep debt (7 days)", formatDuration(s.sleepDebt), if (s.sleepDebt.isZero) "None" else "Below target"))
         add(Stat("Bedtime", s.avgBedtime?.let(CircularTime::format) ?: "–",
-            s.avgBedtime?.let { formatDeviation(CircularTime.diff(it, bedTarget)) } ?: ""))
+            s.avgBedtime?.let { formatDeviation(CircularTime.diff(it, bedTarget)) } ?: "", cmp(clockDelta(s.avgBedtime, prev?.avgBedtime))))
         add(Stat("Wake time", s.avgWake?.let(CircularTime::format) ?: "–",
-            s.avgWake?.let { formatDeviation(CircularTime.diff(it, wakeTarget)) } ?: ""))
-        add(Stat("Sleep midpoint", s.avgMidpoint?.let(CircularTime::format) ?: "–", "Body-clock marker"))
-        add(Stat("Quality", s.avgQuality?.let { "%.1f/10".format(it) } ?: "–", if (s.avgQuality == null) "Not rated" else "Average"))
+            s.avgWake?.let { formatDeviation(CircularTime.diff(it, wakeTarget)) } ?: "", cmp(clockDelta(s.avgWake, prev?.avgWake))))
+        add(Stat("Sleep midpoint", s.avgMidpoint?.let(CircularTime::format) ?: "–", "Body-clock marker",
+            cmp(clockDelta(s.avgMidpoint, prev?.avgMidpoint))))
+        add(Stat("Quality", s.avgQuality?.let { "%.1f/10".format(it) } ?: "–", if (s.avgQuality == null) "Not rated" else "Average",
+            cmp(if (s.avgQuality != null && prev?.avgQuality != null) "%+.1f".format(s.avgQuality - prev.avgQuality) else null)))
         if (period != Period.DAY) {
-            add(Stat("Consistency", s.consistency?.let { "$it/100" } ?: "–", if (s.consistency == null) "Needs 3+ nights" else "Bed & wake regularity"))
+            add(Stat("Consistency", s.consistency?.let { "$it/100" } ?: "–", if (s.consistency == null) "Needs 3+ nights" else "Bed & wake regularity",
+                cmp(if (s.consistency != null && prev?.consistency != null) "%+d".format(s.consistency - prev.consistency) else null)))
             add(Stat("Social jetlag", s.socialJetlagMinutes?.let { formatDuration(Duration.ofMinutes(it.toLong())) } ?: "–",
-                when (val j = s.socialJetlagMinutes) {
+                when (s.socialJetlagMinutes) {
                     null -> "Needs work & free days"
                     in 0..60 -> "OK (≤ 1h)"
                     else -> "High (> 1h)"
-                }))
+                },
+                cmp(if (s.socialJetlagMinutes != null && prev?.socialJetlagMinutes != null)
+                    signedDuration((s.socialJetlagMinutes - prev.socialJetlagMinutes).toLong()) else null)))
         }
     }
     cards.chunked(2).forEach { pair ->
@@ -140,7 +163,14 @@ private fun SummaryCards(s: PeriodSummary, targets: Targets, period: Period) {
     }
 }
 
-private data class Stat(val title: String, val value: String, val sub: String)
+private data class Stat(val title: String, val value: String, val sub: String, val compare: String? = null)
+
+/** "+25m" / "−1h 10m" / "±0m". */
+private fun signedDuration(minutes: Long): String = when {
+    minutes > 0 -> "+" + formatDuration(Duration.ofMinutes(minutes))
+    minutes < 0 -> "−" + formatDuration(Duration.ofMinutes(-minutes))
+    else -> "±0m"
+}
 
 @Composable
 private fun StatCard(stat: Stat, modifier: Modifier) {
@@ -150,6 +180,9 @@ private fun StatCard(stat: Stat, modifier: Modifier) {
             Text(stat.value, style = MaterialTheme.typography.titleLarge)
             if (stat.sub.isNotEmpty()) {
                 Text(stat.sub, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+            stat.compare?.let {
+                Text(it, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.primary)
             }
         }
     }

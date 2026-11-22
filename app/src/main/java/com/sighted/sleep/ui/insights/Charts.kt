@@ -75,7 +75,8 @@ fun SimpleChart(
         }
         series.forEach { s ->
             if (bars) {
-                val w = (slot * 0.6f).coerceAtLeast(2f)
+                // Cap the width so one or two bars don't turn into wide blobs.
+                val w = (slot * 0.6f).coerceIn(2f, 28.dp.toPx())
                 s.values.forEachIndexed { i, v ->
                     if (v != null) {
                         val yTop = y(v)
