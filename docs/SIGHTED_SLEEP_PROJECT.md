@@ -187,6 +187,8 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 
 Bottom navigation with 4 destinations, Material 3 defaults first, refined later in Figma.
 
+> **Build order note (Phase 1):** the app starts with **Today** and **History** tabs. History is the session list (F5.8), pulled forward because Phase 1 needs a place to review and edit sessions. Timeline, Insights and Settings tabs are added in their phases; whether History stays a separate tab or moves inside Timeline is decided in Phase 3.
+
 ```
 ┌ Today ──────────┬ Timeline ───────┬ Insights ───────┬ Settings ───────┐
 │ Sleep/Wake btn  │ Actogram        │ Period selector │ Targets         │
