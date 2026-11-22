@@ -5,6 +5,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.ui.res.painterResource
 import com.sighted.sleep.R
+import com.sighted.sleep.reminders.AppRequest
 import com.sighted.sleep.ui.insights.InsightsScreen
 import com.sighted.sleep.ui.timeline.TimelineScreen
 import androidx.compose.material.icons.filled.Settings
@@ -47,22 +48,29 @@ private val tabs = listOf(
 )
 
 /**
- * @param wakeRequest changes each time the widget asks to end the current sleep (0 = none).
+ * @param request the latest widget/notification request; a new [AppRequest.token] means a new request.
  */
 @Composable
-fun AppNavigation(wakeRequest: Long = 0L) {
+fun AppNavigation(request: AppRequest? = null) {
     val nav = rememberNavController()
     val bottomBar: @Composable () -> Unit = { BottomBar(nav) }
 
-    // A wake request from the widget always lands on Today, where the check-in sheet opens.
-    LaunchedEffect(wakeRequest) {
-        if (wakeRequest != 0L) nav.navigateToTab(Routes.TODAY)
+    // Wake and check-in land on Today (which opens the sheet); edit opens the sleep's editor.
+    LaunchedEffect(request?.token) {
+        when (request?.kind) {
+            AppRequest.Kind.WAKE, AppRequest.Kind.CHECK_IN -> nav.navigateToTab(Routes.TODAY)
+            AppRequest.Kind.EDIT -> {
+                nav.navigateToTab(Routes.TODAY)
+                nav.navigate(Routes.edit(request.sessionId))
+            }
+            null -> Unit
+        }
     }
 
     NavHost(navController = nav, startDestination = Routes.TODAY) {
         composable(Routes.TODAY) {
             TodayScreen(
-                wakeRequest = wakeRequest,
+                request = request,
                 onEditSession = { nav.navigate(Routes.edit(it)) },
                 onAddSession = { nav.navigate(Routes.edit(null)) },
                 bottomBar = bottomBar,

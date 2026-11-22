@@ -46,6 +46,7 @@ import com.sighted.sleep.domain.formatDuration
 import com.sighted.sleep.domain.formatElapsed
 import com.sighted.sleep.domain.model.SleepSession
 import com.sighted.sleep.ui.AppViewModels
+import com.sighted.sleep.reminders.AppRequest
 import com.sighted.sleep.ui.checkin.CheckInForm
 import com.sighted.sleep.ui.checkin.ColorDot
 import com.sighted.sleep.ui.checkin.tagColor
@@ -57,7 +58,7 @@ import com.sighted.sleep.ui.startTimeText
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TodayScreen(
-    wakeRequest: Long,
+    request: AppRequest?,
     onEditSession: (Long) -> Unit,
     onAddSession: () -> Unit,
     bottomBar: @Composable () -> Unit,
@@ -66,7 +67,7 @@ fun TodayScreen(
     val state by viewModel.state.collectAsStateWithLifecycle()
     val snackbar = remember { SnackbarHostState() }
 
-    LaunchedEffect(wakeRequest) { viewModel.onWakeRequest(wakeRequest) }
+    LaunchedEffect(request?.token) { request?.let(viewModel::onRequest) }
     LaunchedEffect(viewModel.errorMessage) {
         viewModel.errorMessage?.let {
             snackbar.showSnackbar(it)

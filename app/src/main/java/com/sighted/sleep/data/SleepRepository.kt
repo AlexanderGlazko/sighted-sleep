@@ -165,6 +165,9 @@ class SleepRepository(
     /** Removes only sessions created by [insertSampleData]. Returns how many were deleted. */
     suspend fun deleteSampleData(): Int = changing { dao.deleteByComment(SampleData.MARKER) }
 
+    /** Tells observers (widget, reminders) that data changed outside this class, e.g. after an import. */
+    suspend fun notifyChanged() = onSessionsChanged()
+
     private suspend inline fun <T> changing(block: () -> T): T {
         val result = writeLock.withLock { block() }
         onSessionsChanged()

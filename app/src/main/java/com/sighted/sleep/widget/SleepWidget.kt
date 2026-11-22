@@ -1,7 +1,6 @@
 package com.sighted.sleep.widget
 
 import android.content.Context
-import android.content.Intent
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -28,7 +27,7 @@ import androidx.glance.layout.padding
 import androidx.glance.text.FontWeight
 import androidx.glance.text.Text
 import androidx.glance.text.TextStyle
-import com.sighted.sleep.MainActivity
+import com.sighted.sleep.reminders.AppRequest
 import com.sighted.sleep.SightedSleepApp
 import com.sighted.sleep.domain.model.SleepSession
 import com.sighted.sleep.ui.startTimeText
@@ -57,11 +56,7 @@ private fun WidgetContent(active: SleepSession?) {
     val action = if (active == null) {
         actionRunCallback<StartSleepAction>()
     } else {
-        actionStartActivity(
-            Intent(context, MainActivity::class.java)
-                .setAction(MainActivity.ACTION_WAKE)
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
-        )
+        actionStartActivity(AppRequest.intent(context, AppRequest.ACTION_WAKE))
     }
     val container = if (active == null) GlanceTheme.colors.secondaryContainer else GlanceTheme.colors.primaryContainer
     val onContainer = if (active == null) GlanceTheme.colors.onSecondaryContainer else GlanceTheme.colors.onPrimaryContainer

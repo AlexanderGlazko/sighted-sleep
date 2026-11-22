@@ -2,6 +2,12 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <!-- Reminders (spec F6). Still no INTERNET permission: the app is offline by design. -->
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <!-- Exact alarms for on-time reminders. Personal sideloaded app, so no Play policy applies. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".SightedSleepApp"
         android:allowBackup="false"
@@ -36,6 +42,22 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/sleep_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".reminders.ReminderReceiver"
+            android:exported="false" />
+
+        <!-- Re-plan reminder alarms after reboot, app update and clock/time-zone changes (spec F6.3). -->
+        <receiver
+            android:name=".reminders.RescheduleReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+            </intent-filter>
         </receiver>
     </application>
 

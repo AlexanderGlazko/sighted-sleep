@@ -168,16 +168,17 @@ Priority: **M** = Must (MVP) · **S** = Should · **C** = Could (later, if desir
 ### F6. Reminders (each toggle independent, all off by default)
 | ID | Feature | Pri |
 |---|---|---|
-| F6.1 | Bedtime reminder N minutes before target bedtime (default 30) | S |
-| F6.2 | Morning check-in reminder if the last session is unrated (N minutes after wake, default 60) | S |
-| F6.3 | Reminders reschedule after reboot / time change | S |
+| F6.1 | Bedtime reminder N minutes before target bedtime (15 / 30 / 60, default 30); skipped while a sleep is running | S |
+| F6.2 | Morning check-in reminder if the last session is unrated (30 / 60 / 120 min after wake, default 60); opens the check-in sheet | S |
+| F6.3 | Reminders reschedule after reboot, app update, time and time-zone changes, and after every data/settings change | S |
+| F6.4 | "Still sleeping?" notification 14h after a sleep started (spec §3.6), with *Wake up now* and *Edit end time* actions; own switch, off by default | S |
 
 ### F7. Settings & data
 | ID | Feature | Pri |
 |---|---|---|
 | F7.1 | Targets, work days, reminders, tag manager | M |
 | F7.2 | **Export** full data to JSON (with schema version) + sessions to CSV, via system file picker | M |
-| F7.3 | **Import** from JSON (replace all, with confirmation) | M |
+| F7.3 | **Import** from JSON (replace all, with confirmation). The file is fully validated first (format version, overlaps, references); the database replacement runs in one transaction, so a failed import changes nothing | M |
 | F7.4 | Dark theme by default; light theme option | M |
 | F7.5 | **Debug only:** generate 90 days of realistic sample data (to develop and test analytics) | M (dev) |
 
@@ -264,7 +265,9 @@ SessionTag(sessionId: Long, tagId: Long)   // composite PK, cascade delete
 
 **SDK levels:** `minSdk 34`, `targetSdk / compileSdk` = latest stable (Android 17). Personal device only, so there's no need to support old versions.
 
-**Permissions:** `POST_NOTIFICATIONS`, `SCHEDULE_EXACT_ALARM`, `RECEIVE_BOOT_COMPLETED`. **No `INTERNET` permission.**
+**Permissions:** `POST_NOTIFICATIONS`, `USE_EXACT_ALARM` (auto-granted; fine for a personal sideloaded app — falls back to inexact alarms if unavailable), `RECEIVE_BOOT_COMPLETED`. Libraries add `WAKE_LOCK`, `FOREGROUND_SERVICE` and `ACCESS_NETWORK_STATE` (WorkManager, used by the widget; it can only *read* connectivity). **No `INTERNET` permission.**
+
+**Backup format:** kotlinx-serialization JSON (library 1.9.0, matches Kotlin 2.2).
 
 ---
 

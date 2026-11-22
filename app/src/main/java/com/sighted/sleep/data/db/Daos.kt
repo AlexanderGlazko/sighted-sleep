@@ -38,6 +38,12 @@ interface SleepSessionDao {
 
     @Query("DELETE FROM sleep_session WHERE comment = :comment")
     suspend fun deleteByComment(comment: String): Int
+
+    @Insert
+    suspend fun insertAll(sessions: List<SleepSessionEntity>)
+
+    @Query("DELETE FROM sleep_session")
+    suspend fun deleteAll()
 }
 
 @Dao
@@ -69,6 +75,9 @@ interface TagDao {
 
     @Insert
     suspend fun insertAll(tags: List<TagEntity>)
+
+    @Query("DELETE FROM tag")
+    suspend fun deleteAll()
 }
 
 /** Morning check-in data: quality, comment and tags of a session (spec F2, F3.3). */
@@ -79,6 +88,15 @@ abstract class CheckInDao {
 
     @Query("SELECT tagId FROM session_tag WHERE sessionId = :sessionId")
     abstract suspend fun getTagIds(sessionId: Long): List<Long>
+
+    @Query("SELECT * FROM session_tag")
+    abstract suspend fun getAllSessionTags(): List<SessionTagEntity>
+
+    @Insert
+    abstract suspend fun insertAllSessionTags(rows: List<SessionTagEntity>)
+
+    @Query("DELETE FROM session_tag")
+    abstract suspend fun deleteAllSessionTags()
 
     @Query("UPDATE sleep_session SET quality = :quality, comment = :comment, updatedAt = :updatedAt WHERE id = :sessionId")
     protected abstract suspend fun updateCheckIn(sessionId: Long, quality: Int?, comment: String?, updatedAt: Long)

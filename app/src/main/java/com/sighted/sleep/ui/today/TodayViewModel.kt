@@ -17,6 +17,7 @@ import com.sighted.sleep.domain.model.SleepSession
 import com.sighted.sleep.domain.model.Tag
 import com.sighted.sleep.domain.model.Targets
 import com.sighted.sleep.ui.message
+import com.sighted.sleep.reminders.AppRequest
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -91,7 +92,7 @@ class TodayViewModel(
     var errorMessage by mutableStateOf<String?>(null)
         private set
 
-    private var lastWakeRequest = 0L
+    private var lastRequestToken = 0L
 
     fun onSleep() = viewModelScope.launch {
         errorMessage = repository.startSleep()?.message()
@@ -106,11 +107,15 @@ class TodayViewModel(
         }
     }
 
-    /** Wake requested from the widget; [token] makes sure each request is handled once. */
-    fun onWakeRequest(token: Long) {
-        if (token == 0L || token == lastWakeRequest) return
-        lastWakeRequest = token
-        onWake()
+    /** Request from the widget or a notification; each token is handled once. */
+    fun onRequest(request: AppRequest) {
+        if (request.token == lastRequestToken) return
+        lastRequestToken = request.token
+        when (request.kind) {
+            AppRequest.Kind.WAKE -> onWake()
+            AppRequest.Kind.CHECK_IN -> request.sessionId?.let { openCheckIn(it) }
+            AppRequest.Kind.EDIT -> Unit // handled by navigation
+        }
     }
 
     fun onDiscardConfirmed() = viewModelScope.launch {

@@ -21,7 +21,7 @@ object AppViewModels {
         initializer {
             app().run { EditSessionViewModel(sleepRepository, tagRepository, settingsRepository, createSavedStateHandle()) }
         }
-        initializer { app().run { SettingsViewModel(settingsRepository, tagRepository, sleepRepository) } }
+        initializer { app().run { SettingsViewModel(settingsRepository, tagRepository, sleepRepository, backupRepository) } }
         initializer { app().run { TimelineViewModel(sleepRepository, settingsRepository) } }
         initializer { app().run { InsightsViewModel(sleepRepository, tagRepository, settingsRepository) } }
     }

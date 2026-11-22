@@ -50,6 +50,19 @@ import com.sighted.sleep.ui.checkin.ColorDot
 import com.sighted.sleep.ui.checkin.tagColor
 import kotlinx.coroutines.launch
 import android.content.pm.ApplicationInfo
+import android.Manifest
+import android.content.Intent
+import android.net.Uri
+import android.os.PowerManager
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.compose.LifecycleEventEffect
+import com.sighted.sleep.reminders.Notifier
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import java.time.LocalDate
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.SnackbarHost
 import androidx.compose.material3.SnackbarHostState
@@ -80,6 +93,51 @@ fun SettingsScreen(
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
     val isDebugBuild = remember { (context.applicationInfo.flags and ApplicationInfo.FLAG_DEBUGGABLE) != 0 }
+    fun say(msg: String) { scope.launch { snackbar.showSnackbar(msg) } }
+
+    // Refreshed every time the screen comes back (e.g. after the user changes system settings).
+    var canNotify by remember { mutableStateOf(Notifier.canNotify(context)) }
+    var batteryOptimized by remember { mutableStateOf(false) }
+    LifecycleEventEffect(Lifecycle.Event.ON_RESUME) {
+        canNotify = Notifier.canNotify(context)
+        batteryOptimized = !context.getSystemService(PowerManager::class.java).isIgnoringBatteryOptimizations(context.packageName)
+    }
+    val notificationPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        canNotify = granted
+        if (!granted) say("Notifications are blocked, so reminders can't appear.")
+    }
+
+    // Backup: the system file picker chooses where files go, so no storage permission is needed.
+    fun writeTo(uri: Uri?, produce: suspend () -> String, done: String) {
+        uri ?: return
+        scope.launch {
+            val ok = runCatching {
+                val text = produce()
+                withContext(Dispatchers.IO) {
+                    context.contentResolver.openOutputStream(uri, "wt")!!.use { it.write(text.toByteArray()) }
+                }
+            }.isSuccess
+            say(if (ok) done else "Couldn't save the file.")
+        }
+    }
+    val exportJson = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("application/json")) {
+        writeTo(it, viewModel::exportJson, "Backup saved.")
+    }
+    val exportCsv = rememberLauncherForActivityResult(ActivityResultContracts.CreateDocument("text/csv")) {
+        writeTo(it, viewModel::exportCsv, "CSV saved.")
+    }
+    var importPreview by remember { mutableStateOf<ImportPreview?>(null) }
+    val importFile = rememberLauncherForActivityResult(ActivityResultContracts.OpenDocument()) { uri ->
+        uri ?: return@rememberLauncherForActivityResult
+        scope.launch {
+            val text = runCatching {
+                withContext(Dispatchers.IO) { context.contentResolver.openInputStream(uri)!!.use { it.readBytes().decodeToString() } }
+            }.getOrNull()
+            if (text == null) { say("Couldn't read the file."); return@launch }
+            val (preview, error) = viewModel.previewImport(text)
+            if (preview != null) importPreview = preview else say(error ?: "Invalid file.")
+        }
+    }
 
     Scaffold(
         topBar = { TopAppBar(title = { Text("Settings") }) },
@@ -137,6 +195,29 @@ fun SettingsScreen(
             }
             item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
 
+            item { SectionHeader("Reminders") }
+            item {
+                RemindersSection(
+                    r = state.reminders,
+                    canNotify = canNotify,
+                    batteryOptimized = batteryOptimized,
+                    onChange = { change ->
+                        viewModel.updateReminders(change)
+                        // Ask for notification permission the first time a reminder is switched on.
+                        if (!Notifier.canNotify(context)) notificationPermission.launch(Manifest.permission.POST_NOTIFICATIONS)
+                    },
+                    onOpenNotificationSettings = {
+                        context.startActivity(
+                            Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS).putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName),
+                        )
+                    },
+                    onOpenBatterySettings = {
+                        context.startActivity(Intent(Settings.ACTION_IGNORE_BATTERY_OPTIMIZATION_SETTINGS))
+                    },
+                )
+            }
+            item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
+
             item { SectionHeader("Tags") }
             items(state.tags, key = { it.id }) { tag ->
                 ListItem(
@@ -151,6 +232,16 @@ fun SettingsScreen(
                     leadingContent = { Icon(Icons.Filled.Add, contentDescription = null) },
                     headlineContent = { Text("Add tag") },
                     modifier = Modifier.clickable { dialog = SettingsDialog.EditTag(null) },
+                )
+            }
+            item { HorizontalDivider(Modifier.padding(top = 12.dp)) }
+
+            item { SectionHeader("Backup") }
+            item {
+                BackupSection(
+                    onExportJson = { exportJson.launch("sighted-sleep-backup-${LocalDate.now()}.json") },
+                    onExportCsv = { exportCsv.launch("sighted-sleep-${LocalDate.now()}.csv") },
+                    onImport = { importFile.launch(arrayOf("application/json", "text/plain", "application/octet-stream")) },
                 )
             }
 
@@ -184,6 +275,27 @@ fun SettingsScreen(
         }
         is SettingsDialog.EditTag -> TagDialog(d.tag, viewModel, onDone = { dialog = null })
         null -> Unit
+    }
+
+    importPreview?.let { p ->
+        AlertDialog(
+            onDismissRequest = { importPreview = null },
+            title = { Text("Replace all data?") },
+            text = {
+                Text(
+                    "Backup from ${p.exportedAt}: ${p.file.sessions.size} sleeps, ${p.file.tags.size} tags and its settings.\n\n" +
+                        "Everything currently in the app will be replaced. This can't be undone — " +
+                        "export a backup of the current data first if you might need it.",
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    importPreview = null
+                    scope.launch { say(runCatching { viewModel.import(p) }.getOrElse { "Import failed. Nothing was changed." }) }
+                }) { Text("Replace", color = MaterialTheme.colorScheme.error) }
+            },
+            dismissButton = { TextButton(onClick = { importPreview = null }) { Text("Cancel") } },
+        )
     }
 }
 
