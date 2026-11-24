@@ -6,6 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.sighted.sleep.ui.features.sleeptype.TypeChoice
 import com.sighted.sleep.data.SaveOutcome
 import com.sighted.sleep.data.SettingsRepository
 import com.sighted.sleep.data.SleepRepository
@@ -25,9 +26,6 @@ import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.temporal.ChronoUnit
-
-/** Type choice in the editor: AUTO means no override (spec §3.2). */
-enum class TypeChoice { AUTO, MAIN, NAP }
 
 data class EditUiState(
     val loaded: Boolean = false,
