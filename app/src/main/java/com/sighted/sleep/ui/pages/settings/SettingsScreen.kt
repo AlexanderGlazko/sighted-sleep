@@ -46,8 +46,8 @@ import com.sighted.sleep.data.db.PRESET_TAGS
 import com.sighted.sleep.domain.formatDuration
 import com.sighted.sleep.domain.model.Tag
 import com.sighted.sleep.ui.AppViewModels
-import com.sighted.sleep.ui.features.ratesleep.ColorDot
-import com.sighted.sleep.ui.features.ratesleep.tagColor
+import com.sighted.sleep.ui.kit.atoms.ColorDot
+import com.sighted.sleep.ui.entities.tag.tagColor
 import kotlinx.coroutines.launch
 import android.content.pm.ApplicationInfo
 import android.Manifest

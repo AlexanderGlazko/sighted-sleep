@@ -20,8 +20,8 @@ import com.sighted.sleep.domain.metrics.InsightMetrics
 import com.sighted.sleep.domain.metrics.MIN_SAMPLES
 import com.sighted.sleep.domain.metrics.TagImpact
 import com.sighted.sleep.domain.model.Tag
-import com.sighted.sleep.ui.features.ratesleep.ColorDot
-import com.sighted.sleep.ui.features.ratesleep.tagColor
+import com.sighted.sleep.ui.kit.atoms.ColorDot
+import com.sighted.sleep.ui.entities.tag.tagColor
 import java.time.Duration
 import kotlin.math.abs
 import kotlin.math.roundToInt

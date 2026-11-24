@@ -49,7 +49,7 @@ import com.sighted.sleep.domain.metrics.CircularTime
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.Targets
 import com.sighted.sleep.ui.AppViewModels
-import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.kit.atoms.ColorDot
 import com.sighted.sleep.ui.pages.timeline.HistoryList
 import java.time.format.DateTimeFormatter
 

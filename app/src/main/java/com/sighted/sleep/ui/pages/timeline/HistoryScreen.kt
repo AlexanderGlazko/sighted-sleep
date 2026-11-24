@@ -29,8 +29,8 @@ import com.sighted.sleep.ui.rangeText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.FilterChip
-import com.sighted.sleep.ui.features.ratesleep.ColorDot
-import com.sighted.sleep.ui.features.ratesleep.tagColor
+import com.sighted.sleep.ui.kit.atoms.ColorDot
+import com.sighted.sleep.ui.entities.tag.tagColor
 import java.time.Instant
 
 /** All sessions as a list grouped by day (spec F5.8). Shown inside the Timeline tab. */

@@ -21,7 +21,7 @@ Single module, MVVM:
 - `domain/` — pure Kotlin, no Android imports. Metrics engine lives in `domain/metrics`.
 
 **UI layers (decided 2026-11-24):** `ui/kit` (Atomic Design: `foundations` · `atoms` · `molecules` · `organisms` · `templates`, no app copy or data), then Feature-Sliced layers `ui/entities` · `ui/features` · `ui/widgets` · `ui/pages` (screens + ViewModels). Imports only go downward. Figma `Rate sleep / Score scale` ↔ `ui/features/ratesleep/ScoreScale.kt`. The Glance widget stays in `widget/`. Full plan and package mapping: Obsidian vault `C:\Obsidian\Sighted Sleep`, note "Component structure plan".
-- **In code so far:** `ui/kit/foundations` (theme), `ui/pages/{today,timeline,edit,insights,settings}` (History lives in `pages/timeline`), `ui/features/ratesleep/CheckInForm.kt`. Charts, cards and settings sections still sit in their page packages until they're pulled out screen by screen.
+- **In code so far:** `ui/kit/foundations` (theme), `ui/kit/atoms` (`ColorDot`, `LargeToggleButton`), `ui/entities/tag` (`tagColor`, `TagLabel`), `ui/features/ratesleep` (`CheckInForm`, `ScoreScale`), `ui/features/togglesleep` (`ToggleSleepButton`), `ui/widgets/lastsleep` (`LastSleepCard`), `ui/pages/{today,timeline,edit,insights,settings}` (History lives in `pages/timeline`). Today is fully split; charts, cards and settings sections of the other screens still sit in their page packages.
 
 ## Hard rules
 - **Never add the `INTERNET` permission** or any networking library. The app is offline by design.
