@@ -20,6 +20,8 @@ Single module, MVVM:
 - `data/` — Room entities, DAOs, repositories, DataStore
 - `domain/` — pure Kotlin, no Android imports. Metrics engine lives in `domain/metrics`.
 
+**Planned UI structure (decided 2026-11-24, not yet in code):** `ui/` moves to the same layers as the Figma components: `ui/kit` (Atomic Design: `foundations` · `atoms` · `molecules` · `organisms` · `templates`, no app copy or data), then Feature-Sliced layers `ui/entities` · `ui/features` · `ui/widgets` · `ui/pages` (screens + ViewModels). Imports only go downward. Figma `Rate sleep / Score row` ↔ `ui/features/ratesleep/ScoreRow.kt`. The Glance widget stays in `widget/`. Full plan and package mapping: Obsidian vault `C:\Obsidian\Sighted Sleep`, note "Component structure plan".
+
 ## Hard rules
 - **Never add the `INTERNET` permission** or any networking library. The app is offline by design.
 - Store timestamps as **UTC epoch millis + zoneId**. Never store local date-times as the source of truth.
@@ -44,7 +46,8 @@ Single module, MVVM:
 ## Status (2026-11-22)
 - **All planned phases (0–5) are done and on `main`.** Features: logging + widget, check-in, tags, targets, work days, Timeline (actogram rows 15:00→15:00, list with tag filter), Insights (Day/Week/Month/Year, cards with Δ vs previous period, trend charts, quality by bedtime, tag impact), reminders, JSON/CSV export + JSON import. 70 unit tests.
 - **Verified on phone:** everything except: JSON import (user skipped the test), reminders actually firing (user must enable them + allow notifications), widget Wake tap after the Phase 5 AppRequest refactor (same intent action, not re-tapped).
-- **Next (optional):** design pass. The user designs screens in Figma; restyle theme (`ui/theme`), `ui/insights/Charts.kt`, `ui/timeline/TimelineScreen.kt`, widget (`widget/SleepWidget.kt`).
+- **Next (optional):** design pass. The user designs screens in Figma; restyle theme (`ui/theme`), `ui/insights/Charts.kt`, `ui/timeline/TimelineScreen.kt`, widget (`widget/SleepWidget.kt`). Before restyling, reorganise components (Figma first, then code) per the planned UI structure above.
+- **Docs:** screen and component documentation lives in the Obsidian vault `C:\Obsidian\Sighted Sleep` (canvas + one note per screen). Figma file key `wIPhet2cA6jXPMXPuCGg7T`, Design page node `11:74`.
 - **Known trade-offs:** sleeps crossing 15:00 are split across two actogram rows (the user's real data has daytime sleep, e.g. 12:13→18:09); the Year chart's month labels skip some months.
 
 ## Commands (PowerShell, from project root)

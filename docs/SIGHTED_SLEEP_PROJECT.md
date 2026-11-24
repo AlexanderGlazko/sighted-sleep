@@ -313,6 +313,7 @@ Estimated at 3–4 h/week. Each phase ends with a build installed on the phone.
 
 ### Phase 6 — Design polish *(ongoing, optional)*
 - Design the key screens in Figma; Claude Code reads them via the Figma connection and restyles the Compose UI.
+- **Component structure (decided 2026-11-24):** Figma components and `ui/` code share one layering. The UI kit follows Atomic Design (foundations → atoms → molecules → organisms → templates; generic, no app copy or data) in `ui/kit`. App components follow Feature-Sliced Design, collapsed to **entities → features → widgets → pages** (no app layer) in `ui/entities`, `ui/features`, `ui/widgets`, `ui/pages`. Dependencies only point downward. Figma names app components `Slice / Part` (e.g. `Rate sleep / Score row` ↔ `ui/features/ratesleep/ScoreRow.kt`). The Glance widget stays in `widget/` and shares only the colours. Order: Figma kit → Figma app layers → code (move packages first with no visible change, then extract composables screen by screen).
 
 **Total:** ~2–3 weeks to the first usable version, ~2–3 months to the full scope.
 
@@ -362,6 +363,7 @@ Estimated at 3–4 h/week. Each phase ends with a build installed on the phone.
 | Backup | JSON/CSV export + JSON import; no cloud |
 | Connectivity | Fully offline, no INTERNET permission |
 | Design | Material 3 defaults first, refine in Figma later |
+| Component structure | Atomic Design UI kit (`ui/kit`) + Feature-Sliced entities / features / widgets / pages, same layers in Figma and code (§9, Phase 6) |
 
 ## 13. Glossary
 - **Actogram / sleep timeline** — chart with one row per day and sleep drawn as bars across the 24h clock; shifts appear as diagonal drift.
