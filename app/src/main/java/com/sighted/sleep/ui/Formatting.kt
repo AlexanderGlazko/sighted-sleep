@@ -47,3 +47,10 @@ fun ValidationError.message(): String = when (this) {
     is ValidationError.Overlaps ->
         "Overlaps another sleep (${other.endDate?.dayText() ?: "now"}, ${other.rangeText()})."
 }
+
+/** Signed duration for comparisons: "+25m", "−1h 10m", "±0m". */
+fun signedDuration(minutes: Long): String = when {
+    minutes > 0 -> "+" + com.sighted.sleep.domain.formatDuration(java.time.Duration.ofMinutes(minutes))
+    minutes < 0 -> "−" + com.sighted.sleep.domain.formatDuration(java.time.Duration.ofMinutes(-minutes))
+    else -> "±0m"
+}

@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.pages.insights
+package com.sighted.sleep.ui.kit.organisms
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.fillMaxWidth
