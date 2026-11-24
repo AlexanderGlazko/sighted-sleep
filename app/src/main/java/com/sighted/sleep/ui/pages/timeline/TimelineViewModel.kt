@@ -8,6 +8,8 @@ import com.sighted.sleep.domain.SessionClassifier
 import com.sighted.sleep.domain.metrics.DaySegment
 import com.sighted.sleep.domain.metrics.SleepMetrics
 import com.sighted.sleep.domain.model.Targets
+import com.sighted.sleep.ui.entities.session.ActogramAxis
+import com.sighted.sleep.ui.entities.session.ActogramRow
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
@@ -17,8 +19,6 @@ import kotlinx.coroutines.flow.stateIn
 import java.time.LocalDate
 import java.time.ZoneId
 
-/** One actogram row: a calendar day with its sleep pieces (spec F5.2). */
-data class ActogramRow(val date: LocalDate, val segments: List<DaySegment>, val isWorkDay: Boolean)
 
 data class TimelineUiState(
     val loaded: Boolean = false,
@@ -44,7 +44,7 @@ class TimelineViewModel(repository: SleepRepository, settings: SettingsRepositor
         minuteTicker,
     ) { sessions, targets, workDays, now ->
         val segments = SleepMetrics.daySegments(
-            sessions, SessionClassifier.classify(sessions), now, rowStartOffsetMinutes = ROW_START_OFFSET_MIN,
+            sessions, SessionClassifier.classify(sessions), now, rowStartOffsetMinutes = ActogramAxis.ROW_START_OFFSET_MIN,
         )
         val today = LocalDate.now(ZoneId.systemDefault())
         val first = segments.keys.minOrNull()
@@ -59,11 +59,4 @@ class TimelineViewModel(repository: SleepRepository, settings: SettingsRepositor
         TimelineUiState(loaded = true, rows = rows, targets = targets)
     }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5_000), TimelineUiState())
 
-    companion object {
-        /** Rows run 15:00 (day before) → 15:00, keeping a typical night in the middle of one row. */
-        const val ROW_START_OFFSET_MIN = -9 * 60
-
-        /** Clock time at the left edge of a row, in minutes after midnight (15:00). */
-        const val ROW_START_CLOCK_MIN = 24 * 60 + ROW_START_OFFSET_MIN
-    }
 }
