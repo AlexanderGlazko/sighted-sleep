@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.checkin
+package com.sighted.sleep.ui.features.ratesleep
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement

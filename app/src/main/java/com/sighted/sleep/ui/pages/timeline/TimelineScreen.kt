@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.timeline
+package com.sighted.sleep.ui.pages.timeline
 
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.clickable
@@ -49,8 +49,8 @@ import com.sighted.sleep.domain.metrics.CircularTime
 import com.sighted.sleep.domain.model.SessionType
 import com.sighted.sleep.domain.model.Targets
 import com.sighted.sleep.ui.AppViewModels
-import com.sighted.sleep.ui.checkin.ColorDot
-import com.sighted.sleep.ui.history.HistoryList
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.pages.timeline.HistoryList
 import java.time.format.DateTimeFormatter
 
 private val rowLabelFormat = DateTimeFormatter.ofPattern("EEE d")

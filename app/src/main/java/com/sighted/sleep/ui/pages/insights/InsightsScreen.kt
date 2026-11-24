@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.insights
+package com.sighted.sleep.ui.pages.insights
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -39,7 +39,7 @@ import com.sighted.sleep.domain.metrics.PeriodSummary
 import com.sighted.sleep.domain.metrics.TrendPoint
 import com.sighted.sleep.domain.model.Targets
 import com.sighted.sleep.ui.AppViewModels
-import com.sighted.sleep.ui.checkin.ColorDot
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
 import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter

@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.edit
+package com.sighted.sleep.ui.pages.edit
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

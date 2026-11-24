@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.edit
+package com.sighted.sleep.ui.pages.edit
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -44,7 +44,7 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.sighted.sleep.domain.formatDuration
 import com.sighted.sleep.ui.AppViewModels
 import com.sighted.sleep.ui.dayText
-import com.sighted.sleep.ui.checkin.CheckInForm
+import com.sighted.sleep.ui.features.ratesleep.CheckInForm
 import androidx.compose.material3.HorizontalDivider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import java.time.Instant

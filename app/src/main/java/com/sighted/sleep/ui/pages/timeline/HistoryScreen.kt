@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.history
+package com.sighted.sleep.ui.pages.timeline
 
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
@@ -29,8 +29,8 @@ import com.sighted.sleep.ui.rangeText
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.material3.FilterChip
-import com.sighted.sleep.ui.checkin.ColorDot
-import com.sighted.sleep.ui.checkin.tagColor
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.features.ratesleep.tagColor
 import java.time.Instant
 
 /** All sessions as a list grouped by day (spec F5.8). Shown inside the Timeline tab. */

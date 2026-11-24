@@ -7,12 +7,12 @@ import androidx.lifecycle.viewmodel.CreationExtras
 import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.sighted.sleep.SightedSleepApp
-import com.sighted.sleep.ui.edit.EditSessionViewModel
-import com.sighted.sleep.ui.history.HistoryViewModel
-import com.sighted.sleep.ui.settings.SettingsViewModel
-import com.sighted.sleep.ui.today.TodayViewModel
-import com.sighted.sleep.ui.timeline.TimelineViewModel
-import com.sighted.sleep.ui.insights.InsightsViewModel
+import com.sighted.sleep.ui.pages.edit.EditSessionViewModel
+import com.sighted.sleep.ui.pages.timeline.HistoryViewModel
+import com.sighted.sleep.ui.pages.settings.SettingsViewModel
+import com.sighted.sleep.ui.pages.today.TodayViewModel
+import com.sighted.sleep.ui.pages.timeline.TimelineViewModel
+import com.sighted.sleep.ui.pages.insights.InsightsViewModel
 
 object AppViewModels {
     val Factory: ViewModelProvider.Factory = viewModelFactory {

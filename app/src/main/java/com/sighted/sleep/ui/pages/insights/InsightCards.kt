@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.insights
+package com.sighted.sleep.ui.pages.insights
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -20,8 +20,8 @@ import com.sighted.sleep.domain.metrics.InsightMetrics
 import com.sighted.sleep.domain.metrics.MIN_SAMPLES
 import com.sighted.sleep.domain.metrics.TagImpact
 import com.sighted.sleep.domain.model.Tag
-import com.sighted.sleep.ui.checkin.ColorDot
-import com.sighted.sleep.ui.checkin.tagColor
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.features.ratesleep.tagColor
 import java.time.Duration
 import kotlin.math.abs
 import kotlin.math.roundToInt

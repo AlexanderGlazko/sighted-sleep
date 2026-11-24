@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.today
+package com.sighted.sleep.ui.pages.today
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,9 +47,9 @@ import com.sighted.sleep.domain.formatElapsed
 import com.sighted.sleep.domain.model.SleepSession
 import com.sighted.sleep.ui.AppViewModels
 import com.sighted.sleep.reminders.AppRequest
-import com.sighted.sleep.ui.checkin.CheckInForm
-import com.sighted.sleep.ui.checkin.ColorDot
-import com.sighted.sleep.ui.checkin.tagColor
+import com.sighted.sleep.ui.features.ratesleep.CheckInForm
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.features.ratesleep.tagColor
 import com.sighted.sleep.ui.dayText
 import com.sighted.sleep.ui.deviationText
 import com.sighted.sleep.ui.rangeText

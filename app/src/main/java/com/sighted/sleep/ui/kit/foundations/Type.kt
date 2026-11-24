@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.theme
+package com.sighted.sleep.ui.kit.foundations
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

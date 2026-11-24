@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.timeline
+package com.sighted.sleep.ui.pages.timeline
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

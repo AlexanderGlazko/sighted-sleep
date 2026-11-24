@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.settings
+package com.sighted.sleep.ui.pages.settings
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -46,8 +46,8 @@ import com.sighted.sleep.data.db.PRESET_TAGS
 import com.sighted.sleep.domain.formatDuration
 import com.sighted.sleep.domain.model.Tag
 import com.sighted.sleep.ui.AppViewModels
-import com.sighted.sleep.ui.checkin.ColorDot
-import com.sighted.sleep.ui.checkin.tagColor
+import com.sighted.sleep.ui.features.ratesleep.ColorDot
+import com.sighted.sleep.ui.features.ratesleep.tagColor
 import kotlinx.coroutines.launch
 import android.content.pm.ApplicationInfo
 import android.Manifest

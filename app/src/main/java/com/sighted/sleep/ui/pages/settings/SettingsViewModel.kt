@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.settings
+package com.sighted.sleep.ui.pages.settings
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope

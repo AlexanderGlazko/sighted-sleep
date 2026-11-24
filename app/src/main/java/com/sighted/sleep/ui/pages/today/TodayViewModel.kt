@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.today
+package com.sighted.sleep.ui.pages.today
 
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf

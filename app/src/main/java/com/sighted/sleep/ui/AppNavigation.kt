@@ -6,8 +6,8 @@ import androidx.compose.material.icons.filled.Home
 import androidx.compose.ui.res.painterResource
 import com.sighted.sleep.R
 import com.sighted.sleep.reminders.AppRequest
-import com.sighted.sleep.ui.insights.InsightsScreen
-import com.sighted.sleep.ui.timeline.TimelineScreen
+import com.sighted.sleep.ui.pages.insights.InsightsScreen
+import com.sighted.sleep.ui.pages.timeline.TimelineScreen
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
@@ -24,10 +24,10 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.sighted.sleep.ui.edit.EditSessionScreen
-import com.sighted.sleep.ui.edit.EditSessionViewModel
-import com.sighted.sleep.ui.settings.SettingsScreen
-import com.sighted.sleep.ui.today.TodayScreen
+import com.sighted.sleep.ui.pages.edit.EditSessionScreen
+import com.sighted.sleep.ui.pages.edit.EditSessionViewModel
+import com.sighted.sleep.ui.pages.settings.SettingsScreen
+import com.sighted.sleep.ui.pages.today.TodayScreen
 
 private object Routes {
     const val TODAY = "today"

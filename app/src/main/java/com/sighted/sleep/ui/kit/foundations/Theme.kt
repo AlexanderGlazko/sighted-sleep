@@ -1,4 +1,4 @@
-package com.sighted.sleep.ui.theme
+package com.sighted.sleep.ui.kit.foundations
 
 import android.app.Activity
 import android.os.Build

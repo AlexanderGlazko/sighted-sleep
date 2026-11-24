@@ -8,7 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.mutableStateOf
 import com.sighted.sleep.reminders.AppRequest
 import com.sighted.sleep.ui.AppNavigation
-import com.sighted.sleep.ui.theme.SightedSleepTheme
+import com.sighted.sleep.ui.kit.foundations.SightedSleepTheme
 
 class MainActivity : ComponentActivity() {
 
