@@ -36,6 +36,7 @@ Single module, MVVM:
 - One feature (or a small group of feature IDs) per task, on its own branch (`phase-N/...` style), fast-forward merged into `main` after the user confirms; merged branches get deleted.
 - After a change: build, run unit tests, install, then check on the phone and summarise what the user should check.
 - Commit to Git after each working step with a clear message.
+- Remote: private GitHub repo `AlexanderGlazko/sighted-sleep` (`origin`). Push `main` after every fast-forward merge (and after direct commits on `main`). Feature branches stay local unless the user asks for a PR. `gh` is at `C:\Program Files\GitHub CLI` (add it to PATH in the shell if it isn't found).
 
 ## Testing on the phone (the phone holds REAL data)
 - Drive it over adb: `screencap` + `uiautomator dump` to read screens, `input tap/swipe` to act. Keep the screen awake while testing.
